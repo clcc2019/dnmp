@@ -1,0 +1,21 @@
+if [ ! -d "./tmp" ]; then
+  mkdir ./tmp
+fi
+
+tm=$(date "+%Y-%m-%d-%s")
+echo '备份开始...打包'
+for i in $(ls www/);do tar -czf ./tmp/$i.$tm.tar.gz www/$i;done
+echo '上传...'
+./ossutil64 cp -r tmp/ oss://oss目录/oss目录/;
+rm -rf tmp/*;
+echo '删除备份...'
+echo '开始清理oss文件...'
+for i in $(ls www/);
+do
+  ./ossutil64 ls oss://oss目录/oss目录 -s | grep $i* >log;
+  filecount=$(cat log|wc -l);
+  if [ $filecount -ge 3 ];
+  then
+    sed -n '1p' log | xargs ./ossutil64 rm;
+  fi;
+done
